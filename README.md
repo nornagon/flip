@@ -2,6 +2,8 @@ This is a little sketch of a web app for flipping through cards. You can drag
 them to the left to flip through, and any that you find interesting you can
 drag up instead. Currently that's all the UI there is :)
 
+[See it live](http://nornagon.github.com/flip)
+
 This exercises a few compositor paths that are currently really slow on mobile
 devices, which is really where I wanted this to work well. It's especially slow
 on Firefox for Android, even on my Galaxy Nexus. Chrome for Android does
