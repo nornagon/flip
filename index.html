@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no'>
+
+<style>
+.card {
+	position: absolute; left: 0; top: 0;
+}
+.card img {
+	-webkit-transform: translateZ(0);
+	-moz-transform: translateZ(0);
+	border-radius: 6px;
+}
+.container {
+  height: 100%;
+  display: -webkit-flex; -webkit-justify-content: center; -webkit-align-items: center;
+}
+.c2 { position: relative; width: 312px; height: 445px; }
+body { background: #4ae; }
+html { overflow: hidden; }
+body, html { width: 100%; height: 100%; margin: 0; padding: 0; }
+* { -webkit-user-drag: none; -webkit-user-select: none; -moz-user-select: none; }
+</style>
+
+<body>
+<div class='container'>
+  <div class='c2'>
+  </div>
+</div>
+
+<script>
+var img_base = ''
+var num_cards = 4;
+var card_from_id = function(id) {
+  id = ((id-1) % num_cards)+1;
+  var i = new Image;
+  i.src = img_base + id + '.jpg';
+  i.ondragstart = function() {
+    return false;
+  };
+  var d = document.createElement('div');
+  d.className = 'card';
+  d.appendChild(i);
+  return d;
+};
+
+var container = document.querySelector('.c2')
+
+var cards = [];
+for (var i = 1; i <= 3; i++) {
+  cards.push(card_from_id(i));
+}
+
+var next_card = 4;
+
+for (var i = 0; i < cards.length; i++) {
+  container.insertBefore(cards[i], container.firstChild);
+}
+
+var top_card = cards[0];
+
+var load_card = function() {
+  cards.push(card_from_id(next_card++));
+  container.insertBefore(cards[cards.length - 1], container.firstChild);
+};
+
+var discarded, saved;
+discarded = saved = function() {
+  cards.shift();
+  top_card = cards[0];
+  load_card();
+};
+
+var ry = 0, rx = 0;
+
+var dir = void 0;
+
+var transform, transition;
+if (document.documentElement.style.webkitTransform != null) {
+  transform = 'webkitTransform';
+  transition = 'webkitTransition';
+} else {
+  transform = 'MozTransform';
+  transition = 'MozTransition';
+}
+
+var mousedown = function(e) {
+  top_card.style[transition] = '';
+  top_card.style[transform] = '';
+  top_card.style.top = 0;
+  top_card.style.left = 0;
+  rx = e.clientX;
+  ry = e.clientY;
+  dir = undefined;
+};
+
+var dx = 0;
+var dy = 0;
+
+var goingX = 0;
+var goingY = 0;
+
+var mousemove = function(e) {
+  var px, py, theta;
+  px = e.clientX;
+  py = e.clientY;
+  goingX = (px - rx) - dx;
+  goingY = (py - ry) - dy;
+  dx = px - rx;
+  dy = py - ry;
+  if (!dir) {
+    if (Math.abs(dx) > 8) {
+      dir = 'left';
+    } else if (Math.abs(dy) > 5) {
+      dir = 'up';
+    }
+  }
+  if (dir === 'left') {
+    top_card.style.left = "" + dx + "px";
+    theta = dx * 0.1;
+    top_card.style[transform] = "translateZ(0) rotate(" + theta + "deg)";
+  } else if (dir === 'up') {
+    top_card.style.top = "" + dy + "px";
+  }
+};
+
+var mouseup = function() {
+  top_card.style[transition] = '0.2s';
+  top_card.style.top = '0px';
+  if (dir === 'left') {
+    if (dx < -120 && goingX < 0) {
+      top_card.style.left = "-450px";
+      top_card.style[transform] = 'translateZ(0) rotate(-30deg)';
+      discarded();
+    } else {
+      top_card.style.left = 0;
+      top_card.style[transform] = 'translateZ(0) rotate(0deg)';
+    }
+  } else if (dir === 'up') {
+    if (dy < -60 && goingY < 0) {
+      top_card.style.top = "-450px";
+      saved();
+    }
+  }
+};
+
+document.body.addEventListener('touchstart', function(e) {
+  var t;
+  t = e.touches[0];
+  mousedown({
+    clientX: t.pageX,
+    clientY: t.pageY
+  });
+});
+
+document.body.addEventListener('touchmove', function(e) {
+  var t;
+  t = e.touches[0];
+  mousemove({
+    clientX: t.pageX,
+    clientY: t.pageY
+  });
+  e.preventDefault();
+});
+
+document.body.addEventListener('touchend', function(e) {
+  mouseup();
+});
+
+document.body.addEventListener('mousedown', function(e) {
+  mousedown(e);
+  document.body.addEventListener('mousemove', mousemove);
+});
+
+document.body.addEventListener('mouseup', function(e) {
+  document.body.removeEventListener('mousemove', mousemove);
+  mouseup();
+});
+</script>
